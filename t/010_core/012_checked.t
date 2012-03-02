@@ -41,4 +41,30 @@ subtest 'check() sets checked() values' => sub {
     };
 };
 
+subtest 'check() using checked() values' => sub {
+    my $q = CGI->new({
+        test1 => ' hello ',
+        test2 => ' hello ',
+    });
+
+    my $v = FormValidator::Lite->new($q);
+    
+    $v->check(
+        test1 => [[FILTER => 'trim'], [EQUAL => 'hello']],
+        
+        test2 => [[FILTER => 'trim']],
+        test2 => [[EQUAL  => 'hello']],
+    );
+    
+    ok(not $v->has_error);
+    
+    is_deeply(
+        $v->checked,
+        {
+            test1 => 'hello',
+            test2 => 'hello',
+        },
+    ) or diag(explain $v->checked);
+};
+
 done_testing();

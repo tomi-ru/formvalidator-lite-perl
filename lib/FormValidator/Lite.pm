@@ -38,12 +38,12 @@ sub check {
         local $_;
         if (ref $key) {
             $key = [%$key];
-            $_ = [ map { $q->param($_) } @{ $key->[1] } ];
+            $_ = [ map { $self->param($_) } @{ $key->[1] } ];
             $key = $key->[0];
         } else {
-            $_ = $q->param($key);
+            $_ = $self->param($key);
         }
-        $self->{checked}{$key} = $_;
+        $self->{checked}{$key} = $_; # set for key => [] (nothin required)
         for my $rule (@$rules) {
             my $rule_name = ref($rule) ? $rule->[0]                        : $rule;
             my $args      = ref($rule) ? [ @$rule[ 1 .. scalar(@$rule)-1 ] ] : +[];
@@ -66,11 +66,19 @@ sub check {
             if ($is_ok==0) {
                 $self->set_error($key => $rule_name);
                 delete $self->{checked}{$key};
+            } else {
+                $self->{checked}{$key} = $_; # set filterd value
             }
         }
     }
 
     return $self;
+}
+
+sub param {
+    my ($self, $key) = @_;
+    return $self->{checked}{$key} if exists $self->{checked}{$key};
+    return $self->{query}->param($key);
 }
 
 sub is_error {
