@@ -67,4 +67,26 @@ subtest 'check() using checked() values' => sub {
     ) or diag(explain $v->checked);
 };
 
+subtest 'check() sets checked() values' => sub {
+    plan skip_all => 'hashref key has some of issues';
+
+    my $q = CGI->new({
+        mail1   => ' aaa ',
+        mail2   => ' aaa ',
+    });
+
+    my $v = FormValidator::Lite->new($q);
+    $v->check(
+        { mails => [qw/mail1 mail2/] } => [[FILTER => 'trim'], 'DUPLICATION'],
+    );
+
+    is_deeply(
+        $v->checked,
+        {
+            mail1   => 'aaa',
+            mail2   => 'aaa',
+        },
+    ) or diag(explain $v->checked);
+};
+
 done_testing();

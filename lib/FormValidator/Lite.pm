@@ -41,9 +41,8 @@ sub check {
             $_ = [ map { $self->param($_) } @{ $key->[1] } ];
             $key = $key->[0];
         } else {
-            $_ = $self->param($key);
+            $_ = $self->{checked}{$key} = $self->param($key); # set for nothing required
         }
-        $self->{checked}{$key} = $_; # set for key => [] (nothin required)
         for my $rule (@$rules) {
             my $rule_name = ref($rule) ? $rule->[0]                        : $rule;
             my $args      = ref($rule) ? [ @$rule[ 1 .. scalar(@$rule)-1 ] ] : +[];
@@ -66,7 +65,7 @@ sub check {
             if ($is_ok==0) {
                 $self->set_error($key => $rule_name);
                 delete $self->{checked}{$key};
-            } else {
+            } elsif (not ref $key) {
                 $self->{checked}{$key} = $_; # set filterd value
             }
         }
