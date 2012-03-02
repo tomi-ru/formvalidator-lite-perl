@@ -7,7 +7,7 @@ use Scalar::Util qw/blessed/;
 use FormValidator::Lite::Constraint::Default;
 use FormValidator::Lite::Upload;
 use Class::Accessor::Lite 0.05 (
-    rw => [qw/query/]
+    rw => [qw/query checked/]
 );
 use Class::Load ();
 
@@ -33,6 +33,7 @@ sub check {
     Carp::croak("this is instance method") unless ref $self;
 
     my $q = $self->{query};
+            $self->{checked} = {};
     while (my ($key, $rules) = splice(@rule_ary, 0, 2)) {
         local $_;
         if (ref $key) {
@@ -42,6 +43,7 @@ sub check {
         } else {
             $_ = $q->param($key);
         }
+        $self->{checked}{$key} = $_;
         for my $rule (@$rules) {
             my $rule_name = ref($rule) ? $rule->[0]                        : $rule;
             my $args      = ref($rule) ? [ @$rule[ 1 .. scalar(@$rule)-1 ] ] : +[];
@@ -63,6 +65,7 @@ sub check {
             };
             if ($is_ok==0) {
                 $self->set_error($key => $rule_name);
+                delete $self->{checked}{$key};
             }
         }
     }
